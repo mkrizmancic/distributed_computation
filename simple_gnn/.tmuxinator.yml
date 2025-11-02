@@ -3,6 +3,10 @@
 name: gnn
 root: /home/marko/PROJECTS/distributed_computation/simple_gnn
 pre_window: source ~/PROJECTS/graphs_venv/bin/activate
+
+<% transport = ARGV.include?('zmq') ? 'zmq' : 'socket' %>
+transport: <%= transport %>
+
 windows:
   - nodes:
       layout: even-horizontal
@@ -12,28 +16,28 @@ windows:
           <%- if args[0] == "mixed" or args[0] == "remote" %>
           ssh -t pi@rpi0.local '/home/pi/distributed_computation/simple_gnn/docker/start_docker.sh dist_gnn_cont'
           <%- end %>
-          python3 node.py 0
+          python3 node_<%= transport %>.py 0
         - |
           <%- if args[0] == "remote" %>
           ssh -t pi@rpi1.local '/home/pi/distributed_computation/simple_gnn/docker/start_docker.sh dist_gnn_cont'
           <%- end %>
-          python3 node.py 1
+          python3 node_<%= transport %>.py 1
         - |
           <%- if args[0] == "remote" %>
           ssh -t pi@rpi2.local '/home/pi/distributed_computation/simple_gnn/docker/start_docker.sh dist_gnn_cont'
           <%- end %>
-          python3 node.py 2
+          python3 node_<%= transport %>.py 2
         - |
           <%- if args[0] == "remote" %>
           ssh -t pi@rpi3.local '/home/pi/distributed_computation/simple_gnn/docker/start_docker.sh dist_gnn_cont'
           <%- end %>
-          python3 node.py 3
+          python3 node_<%= transport %>.py 3
         - |
           <%- if args[0] == "remote" %>
           ssh -t pi@rpi4.local '/home/pi/distributed_computation/simple_gnn/docker/start_docker.sh dist_gnn_cont'
           <%- end %>
-          python3 node.py 4
+          python3 node_<%= transport %>.py 4
   - central:
       panes:
         - |
-          history -s "python3 central.py <%= @args[0] %>.yaml"
+          history -s "python3 central_<%= transport %>.py <%= @args[0] %>.yaml"

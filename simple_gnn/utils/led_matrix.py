@@ -4,9 +4,13 @@ import random
 import signal
 import sys
 import time
+from matplotlib import colormaps
 
 import numpy as np
-from rpi_ws281x import Color, PixelStrip
+try:
+    from rpi_ws281x import Color, PixelStrip
+except ImportError:
+    pass
 
 # LED strip configuration:
 LED_HEIGHT = 4        # Number of LED pixel rows.
@@ -29,14 +33,28 @@ class LEDMatrix(object):
         }
 
         # Create NeoPixel object with appropriate configuration.
-        self.strip = PixelStrip(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS, LED_CHANNEL)
-        # Intialize the library (must be called once before other functions).
-        self.strip.begin()
+        try:
+            self.strip = PixelStrip(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS, LED_CHANNEL)
+            # Intialize the library (must be called once before other functions).
+            self.strip.begin()
+        except (RuntimeError, NameError):
+            self._deactivate_methods()
+            print("LED strip not found. Running in dummy mode.")
 
         signal.signal(signal.SIGINT, self.exit)
 
         self.init_animation()
         print("LED strip is ready to receive commands.")
+
+    def _deactivate_methods(self):
+        # No-op function
+        def noop(*args, **kwargs):
+            pass
+
+        # Replace instance methods with noop except __init__ and _deactivate_methods
+        for attr_name in dir(self):
+            if callable(getattr(self, attr_name)) and not attr_name.startswith("__"):
+                setattr(self, attr_name, noop)
 
     def init_animation(self):
         for color in [(1, 0, 0), (0, 1, 0), (0, 0, 1), (1, 1, 1), (0, 0, 0)]:
@@ -178,6 +196,14 @@ class LEDMatrix(object):
         x = max(min(x, in_max), in_min)
         return round((x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min)
 
+    @staticmethod
+    def from_colormap(value: float, cmap_name: str = "cool", color_space: str = 'rgb'):
+        cmap = colormaps[cmap_name]
+        r, g, b, _ = cmap(value)
+        if color_space == 'hsv':
+            return LEDMatrix.rgb2hsv(int(r * 255), int(g * 255), int(b * 255))
+        return (int(r * 255), int(g * 255), int(b * 255))
+
     def exit(self, signum=None, frame=None):
         print("Turning off LEDs and exiting.")
         for i in range(LED_COUNT):
@@ -189,7 +215,7 @@ class LEDMatrix(object):
 if __name__ == '__main__':
     led = LEDMatrix()
 
-    print(f"RGB")
+    print("RGB")
     led.set_all((255, 0, 0))  # Set all LEDs to red
     time.sleep(1)
     led.set_all((0, 255, 0))  # Set all LEDs to green
@@ -199,7 +225,7 @@ if __name__ == '__main__':
     led.set_all((0, 0, 0))  # Turn off all LEDs
     time.sleep(2)
 
-    print(f"Squares")
+    print("Squares")
     for i in range(LED_WIDTH - 1):
         led.set_square((255, 255, 0), 2, (0, i))  # Set a yellow square
         time.sleep(0.2)

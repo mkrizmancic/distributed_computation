@@ -21,7 +21,7 @@ RUN apt-get update && \
 RUN pip3 install --upgrade pip
 RUN pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
 RUN pip3 install torch-geometric
-RUN pip3 install pyyaml matplotlib networkx tqdm codetiming
+RUN pip3 install pyyaml matplotlib networkx tqdm codetiming pyzmq
 RUN pip3 install rpi_ws281x
 
 # Copy tmux configuration

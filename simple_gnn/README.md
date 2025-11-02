@@ -21,6 +21,7 @@ Each node:
 
 - **Distributed GNN Processing**: Split GraphSAGE computation across multiple nodes
 - **Network Communication**: Asynchronous TCP communication between nodes
+- **ZMQ Option**: Alternate implementation using ZeroMQ for message passing
 - **LED Visualization**: Real-time computation progress display on Raspberry Pi LED matrices
 - **Flexible Configuration**: YAML-based configuration for different deployment scenarios
 - **Docker Support**: Containerized deployment for consistent environments
@@ -70,10 +71,14 @@ docker build -t rpi_dist_gnn .
 - NetworkX
 - PyYAML
 
+Optional (for ZMQ-based variant):
+- pyzmq
+
 ```bash
 pip install torch torchvision torchaudio
 pip install torch-geometric
 pip install pyyaml matplotlib networkx tqdm codetiming
+pip install pyzmq  # optional, needed for *_zmq.py modules
 ```
 
 #### Raspberry Pi Additional Dependencies
@@ -123,7 +128,7 @@ nodes:
 #### a. Automated Execution (recommended)
 All nodes can be automatically started using `tmuxinator`:
 ```bash
-tmuxinator start gnn <local|remote|mixed>
+tmuxinator start gnn <local|remote|mixed> <socket|zmq>
 ```
 See the instructions below for navigating within the tmux session.
 
@@ -131,23 +136,27 @@ See the instructions below for navigating within the tmux session.
 
 **Start worker nodes** (on each device):
 ```bash
-python node.py <node_id>
+python node_<socket|zmq>.py <node_id>
 ```
 
-Example for node 0:
+Example for node 0 using ZMQ transport:
 ```bash
-python node.py 0
+python node_zmq.py 0
 ```
 
 **Start central coordinator**:
 ```bash
-python central.py <config_name>
+python central_<socket|zmq>.py <config_name>
 ```
 
-Example using local configuration:
+Example using local configuration and socket transport:
 ```bash
-python central.py local.yaml
+python central_socket.py local.yaml
 ```
+
+Notes:
+- Each node binds on `tcp://*:<port>` for both phases. First it waits for config (REP), then it re-binds a runtime PULL socket on the same port.
+- One PUSH socket per neighbor is used to ensure messages are sent to all neighbors (ZMQ PUSH load-balances across connections by default).
 
 
 

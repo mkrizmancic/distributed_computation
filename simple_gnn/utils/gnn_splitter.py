@@ -48,7 +48,7 @@ class GNNSplitter:
         else:
             raise NotImplementedError(f"{self.model.__class__.__name__} is not supported for layer computation.")
 
-        return out, intermediate.item()  # type: ignore
+        return out, intermediate  # type: ignore
 
     def forward(
         self,

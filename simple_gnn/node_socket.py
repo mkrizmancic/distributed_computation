@@ -1,12 +1,12 @@
 import asyncio
 import importlib
 import pickle
-import platform
 import sys
 from collections import defaultdict
-
-from gnn_splitter import GNNSplitter
 from torch import Tensor
+
+from utils.gnn_splitter import GNNSplitter
+from utils.led_matrix import LEDMatrix
 
 
 class Node:
@@ -24,18 +24,6 @@ class Node:
                                            # Also used for synchronization.
 
         # Check if this is running on Raspberry Pi.
-        if platform.uname().machine == "aarch64":
-            from led_matrix import LEDMatrix
-        else:
-            class LEDMatrix:
-                def __init__(self):
-                    pass
-
-                def set_percentage(self, percent, resolution, base_color, mode='l2r', color_space='rgb'):
-                    pass
-
-                def off(self):
-                    pass
         self.led = LEDMatrix()
 
     def __enter__(self):
@@ -109,13 +97,24 @@ class Node:
         # Continuously exchange values with neighbors and update representation.
         while self.layer < self.model.num_layers:
             await self.exchange_and_update()
-            print(f"Layer {self.layer} output: {self.output}\n")
-            self.led.set_percentage(self.output / 4, 800, (255, 0, 0), "l2r")
+            print(f"Layer {self.layer} output: {self.output.item()}\n")
+
+            vmin = 0
+            vmax = 4
+            norm_output = max(0.0, min(1.0, (self.output.item() - vmin) / (vmax - vmin)))
+
+            self.led.set_percentage(norm_output, 800, (255, 0, 0), "l2r")
+
+            color = LEDMatrix.from_colormap(norm_output, "jet", color_space='hsv')
+            color = (color[0], color[1], int(color[2] * 0.2))  # Dim the value for better visibility
+            self.led.set_all(color, 'hsv')
+
             self.layer += 1
             await asyncio.sleep(2)
 
         print()
         print(f"Final value: {self.value.item()}")
+        await asyncio.sleep(5)  # Keep the final state for a while before shutting down.
 
     async def exchange_and_update(self):
         # Send value to all neighbors.

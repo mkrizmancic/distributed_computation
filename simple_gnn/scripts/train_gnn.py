@@ -3,11 +3,11 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from dataset import SimpleDataset
 from torch_geometric.nn import GCN, GIN, GraphSAGE
 from tqdm import tqdm
 
 from my_graphs_dataset import GraphDataset
+from dataset import SimpleDataset
 
 ## Set up these values.
 device = "cpu"
@@ -20,7 +20,7 @@ num_layers = 5
 hidden_channels = 16
 
 # Load the dataset.
-root = Path(__file__).parents[0]
+root = Path(__file__).parents[1]
 graph_loader = GraphDataset(selection=selected_graph_sizes, seed=seed)
 dataset = SimpleDataset(root / "Dataset", graph_loader).to(device)
 

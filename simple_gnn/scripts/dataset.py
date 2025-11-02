@@ -232,7 +232,7 @@ def inspect_graphs(dataset, graphs: int | list = 1):
 
 
 def main():
-    root = Path(__file__).parents[0] / "Dataset"
+    root = Path(__file__).parents[1] / "Dataset"
     selected_graph_sizes = {
         5: -1,
     }
