@@ -30,26 +30,32 @@ Each node:
 ## Project Structure
 
 ```
-├── central.py          # Central coordinator for distributing configs
-├── node.py             # Distributed node implementation
-├── gnn_splitter.py     # Handles modifying existing models for distributed computation
-├
-├── train_gnn.py        # Prepares a simple model for demonstration, not needed if model is already available
-├── dataset.py          # Dataset used by training script, not needed if dataset is already available
-├── led_matrix.py       # LED matrix visualization (Raspberry Pi)
-├── test_distributed.py # Testing the distributed computation concept
-├
 ├── config/              # Configuration files
 │   ├── local.yaml       # Local testing configuration
 │   ├── remote.yaml      # Remote Raspberry Pi configuration
 │   ├── mixed.yaml       # Mixed local/remote configuration
 │   ├── model.pth        # Trained model weights - not saved on GitHub
 │   └── test_dataset.pth # Test dataset - not saved on GitHub
-├── Dataset/            # Processed graph datasets - not saved on GitHub
-├── docker/             # Docker configuration
+│
+├── Dataset/  # Processed graph datasets - not saved on GitHub
+├── Docker/   # Docker configuration
 │   ├── Dockerfile
 │   ├── run_docker.sh
 │   └── start_docker.sh
+├── scripts/
+│   ├── dataset.py           # Dataset definition script
+│   ├── test_distributed.py  # Confirm that model distribution works
+│   └── train_gnn.py         # Training script for simple GNN model
+├── utils/
+│   ├── gnn_splitter.py  # Split the existing GNN model
+│   └── led_matrix.py    # LED matrix visualization utilities
+│
+├── .tmuxinator.yml    # Central coordinator using sockets communication
+├── central_socket.py  # Central coordinator using sockets communication
+├── central_zmq.py     # Central coordinator using ZMQ communication
+├── node_socket.py     # Distributed node implementation using sockets
+├── node_zmq.py        # Distributed node implementation using ZMQ
+└── README.md          # This file
 ```
 
 ## Installation
@@ -61,33 +67,6 @@ cd docker
 docker build -t rpi_dist_gnn .
 ./run_docker.sh
 ```
-
-### Manual Installation
-#### Prerequisites
-
-- Python 3.10+
-- PyTorch
-- PyTorch Geometric
-- NetworkX
-- PyYAML
-
-Optional (for ZMQ-based variant):
-- pyzmq
-
-```bash
-pip install torch torchvision torchaudio
-pip install torch-geometric
-pip install pyyaml matplotlib networkx tqdm codetiming
-pip install pyzmq  # optional, needed for *_zmq.py modules
-```
-
-#### Raspberry Pi Additional Dependencies
-
-```bash
-pip install rpi_ws281x  # For LED matrix control
-```
-
-
 
 ## Usage
 

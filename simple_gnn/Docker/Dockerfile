@@ -65,4 +65,4 @@ RUN cd /root/workspace/my_graphs_dataset && pip3 install -e .
 WORKDIR /root/workspace/distributed_computation/simple_gnn
 
 # Default command
-CMD ["sh", "-c", "service dbus start && /usr/sbin/avahi-daemon --daemonize && exec /bin/bash"]
+CMD ["/bin/bash"]

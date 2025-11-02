@@ -9,6 +9,8 @@ docker run \
   --network host \
   --privileged \
   --volume ~/.ssh/ssh_auth_sock:/ssh-agent \
+  --volume /var/run/dbus:/var/run/dbus \
+  --volume /var/run/avahi-daemon/socket:/var/run/avahi-daemon/socket \
   --env SSH_AUTH_SOCK=/ssh-agent \
   --env TERM=xterm-256color \
   --name dist_gnn_cont \
